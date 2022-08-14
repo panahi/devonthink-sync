@@ -5,7 +5,7 @@ import { Type } from "./devonthink/types/file-types";
 
 
 // This main is just a Node.js code
-export const example = async () => {
+export const devonthinkTest = async () => {
     let searchParameters: ItemSearchParameters = {
         name: "21 People",
         kind: Type.GROUP
