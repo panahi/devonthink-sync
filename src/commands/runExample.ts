@@ -1,29 +1,26 @@
-import 'dotenv/config';
-import RaindropApi from './raindrop';
+import "@jxa/global-type";
+import RaindropApi from '../raindrop';
+import { getUUIDforItem } from "../devonthink/devonthink-client";
+import { ItemSearchParameters } from "../devonthink/types/Application";
+import { Type } from "../devonthink/types/file-types";
 
-// import { devonthinkTest } from "./app";
 
-// devonthinkTest().then((output) => {
-//     console.log(output)
-// }).catch(error => {
-//     console.error(error);
-// });
+// This main is just a Node.js code
+export const devonthinkTest = async () => {
+    let searchParameters: ItemSearchParameters = {
+        name: "21 People",
+        kind: Type.GROUP
+    };
+    let groupId = await getUUIDforItem(searchParameters);
+    console.log("Group ID: " + groupId);
+    // let reference = await createPDFFromURL(
+    //     "https://discourse.devontechnologies.com/t/trying-to-add-move-to-convert-urls-to-pdf-script/21013/2",
+    //     groupId
+    // );
+};
 
-// import { raindropTest } from "./raindrop/raindrop-client";
-// raindropTest().then((output) => {
-//     console.log(output)
-// }).catch(error => {
-//     console.error(error);
-// });
-raindropTest().then((success) => {
-    console.log(success)
-}).catch((error) => {
-    console.log("!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!");
-    console.log(error);
-})
-
-async function raindropTest() {
-    const RaindropClient = new RaindropApi({ apiKey: process.env.RAINDROP_TEST_TOKEN || "" });
+export const raindropTest = async () => {
+    const RaindropClient = new RaindropApi();
     let rootCollectionResponse = await RaindropClient.getRootCollections();
     console.log("-----------ROOT COLLECTIONS---------------");
     rootCollectionResponse.items.forEach(item => console.log(item.title));
@@ -64,6 +61,4 @@ async function raindropTest() {
 
         console.log(`${raindropCollectionParent.item.title}/${raindropCollection.item.title}`)
     }
-
-    return "done"; 
 }

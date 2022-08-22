@@ -2,7 +2,7 @@
  * Using https://github.com/ilyamkin/dev-to-js/blob/master/src/base.ts as a starting point
  */
  type Config = {
-    apiKey: string,
+    apiKey?: string,
     basePath?: string,
 }
 
@@ -42,12 +42,12 @@ export class ListResponse<T> {
 }
 
 export abstract class Base {
-    private apiKey: string
+    private apiKey?: string
     private basePath: string
 
-    constructor(config: Config) {
-        this.apiKey = config.apiKey
-        this.basePath = config.basePath || 'https://api.raindrop.io/rest/v1/'
+    constructor(config?: Config) {
+        this.apiKey = config?.apiKey || process.env.RAINDROP_TEST_TOKEN;
+        this.basePath = config?.basePath || 'https://api.raindrop.io/rest/v1/';
     }
     
     protected async request<T> (endpoint: string, options?: RequestInit): Promise<T> {

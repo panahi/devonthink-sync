@@ -4,7 +4,7 @@
       "module": "commonjs",
       "moduleResolution": "node",
       "newLine": "LF",
-      "outDir": "./lib/",
+      "outDir": "./build",
       "target": "es5",
       "sourceMap": true,
       "declaration": true,
