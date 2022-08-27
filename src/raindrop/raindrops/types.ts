@@ -11,6 +11,29 @@ export class RaindropListResponse extends ListResponse<Raindrop> {
     }
 }
 
+export type RaindropUpdateParameters = {
+    tags?: string[]
+    excerpt?: string
+}
+
+export type RaindropQueryParameters = {
+    /**
+     * Which page to query? Default 0
+     */
+    page?: number
+
+    /**
+     * How many results to include per page? Default 25
+     */
+    perpage?: number
+
+    /**
+     * Search query to filter results with. Test queries in the Raindrop app and copy them here
+     * See https://help.raindrop.io/using-search/#operators
+     */
+    search?: string
+}
+
 export interface Link {
     /**
      * The URL that this link points to

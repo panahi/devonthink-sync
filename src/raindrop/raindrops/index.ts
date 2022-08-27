@@ -1,55 +1,70 @@
+import { stringify } from 'querystringify';
 import { Base, ItemResponse } from "../base";
-import { Raindrop, RaindropListResponse } from "./types";
+import { UNSORTED_COLLECTION, ALL_RAINDROPS_COLLECTION, DELETED_RAINDROPS_COLLECTION } from "../collections/types";
+import { Raindrop, RaindropListResponse, RaindropQueryParameters, RaindropUpdateParameters } from "./types";
 
 const RESOURCE_NAME = "raindrop";
 const RESOURCE_NAME_PLURAL = RESOURCE_NAME + 's';
 
-const UNSORTED_COLLECTION = -1;
-const ALL_RAINDROPS_COLLECTION = 0;
-const DELETED_RAINDROPS_COLLECTION = -99;
-
 export class Raindrops extends Base {
-    getRaindropById (raindropId: number) {
+    async getRaindropById(raindropId: number) {
         return this.request<ItemResponse<Raindrop>>(`${RESOURCE_NAME}/${raindropId}`);
     }
 
-    getPermanentCopyOfRaindrop (raindropId: number) {
+    async getPermanentCopyOfRaindrop(raindropId: number) {
         return this.request<ItemResponse<Raindrop>>(`${RESOURCE_NAME}/${raindropId}/cache`);
     }
 
-    getRaindropsFromCollection (collectionId: number) {
-        return this.request<RaindropListResponse>(`${RESOURCE_NAME_PLURAL}/${collectionId}`)
+    async getRaindropsFromCollection(collectionId: number, params?: RaindropQueryParameters) {
+        let path = `${RESOURCE_NAME_PLURAL}/${collectionId}`;
+        if (params) {
+            path += stringify(params, '?');
+        }
+        return this.request<RaindropListResponse>(path)
     }
 
-    getUnsortedRaindrops() {
-        return this.getRaindropsFromCollection(UNSORTED_COLLECTION)
+    async getUnsortedRaindrops(params?: RaindropQueryParameters) {
+        return this.getRaindropsFromCollection(UNSORTED_COLLECTION, params)
     }
 
-    getAllRaindrops() {
-        return this.getRaindropsFromCollection(ALL_RAINDROPS_COLLECTION)
+    async getAllRaindrops(params?: RaindropQueryParameters) {
+        return this.getRaindropsFromCollection(ALL_RAINDROPS_COLLECTION, params)
     }
 
-    getDeletedRaindrops() {
-        return this.getRaindropsFromCollection(DELETED_RAINDROPS_COLLECTION);
+    async getDeletedRaindrops(params?: RaindropQueryParameters) {
+        return this.getRaindropsFromCollection(DELETED_RAINDROPS_COLLECTION, params);
     }
 
-    async addTagToRaindrop (raindropId: number, tag: string) {
+    async updateRaindrop(raindropId: number, params: RaindropUpdateParameters) {
+        console.log(`Raindrop API: updateing raindrop ${raindropId}`, params)
         let toUpdate = await this.getRaindropById(raindropId);
-        if (! toUpdate || !toUpdate.item || toUpdate.result == false) {
+        if (!toUpdate || !toUpdate.item || toUpdate.result == false) {
             return null;
         }
 
-        if (toUpdate.item.tags.indexOf(tag) >= 0) {
-            return toUpdate;
+        let updateObj: RaindropUpdateParameters = {};
+
+        if (params.tags) {
+            let mergedTags = params.tags;
+            if (toUpdate.item.tags.length > 0) {
+                for (const tag of toUpdate.item.tags) {
+                    if (params.tags.indexOf(tag) < 0) {
+                        mergedTags.push(tag);
+                    }
+                }
+            }
+            updateObj.tags = mergedTags;
         }
 
-        let newTagArray = [...toUpdate.item.tags, tag];
-        
+        if (params.excerpt) {
+            updateObj.excerpt = params.excerpt;
+        }
+
         return this.request<ItemResponse<Raindrop>>(
             `${RESOURCE_NAME}/${raindropId}`,
             {
                 method: 'PUT',
-                body: JSON.stringify({tags: newTagArray})
+                body: JSON.stringify(updateObj)
             }
         )
     }

@@ -1,6 +1,6 @@
 import { Collections } from "./collections";
 
-import { applyMixins } from "./utils";
+import { applyMixins } from "./utilities/applyMixins";
 import { Base } from "./base";
 import { Users } from "./user";
 import { Raindrops } from "./raindrops";

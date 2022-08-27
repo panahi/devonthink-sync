@@ -11,11 +11,6 @@ enum ReferenceType {
     users
 }
 
-export type Pagination = {
-    page?: number,
-    perpage?: number,
-}
-
 export type Reference = {
     $ref: ReferenceType,
     $id: number

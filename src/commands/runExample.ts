@@ -1,6 +1,6 @@
 import "@jxa/global-type";
 import RaindropApi from '../raindrop';
-import { getUUIDforItem } from "../devonthink/devonthink-client";
+import { getUUIDforItem, setCustomMetadata } from "../devonthink/devonthink-client";
 import { ItemSearchParameters } from "../devonthink/types/Application";
 import { Type } from "../devonthink/types/file-types";
 
@@ -13,10 +13,11 @@ export const devonthinkTest = async () => {
     };
     let groupId = await getUUIDforItem(searchParameters);
     console.log("Group ID: " + groupId);
-    // let reference = await createPDFFromURL(
-    //     "https://discourse.devontechnologies.com/t/trying-to-add-move-to-convert-urls-to-pdf-script/21013/2",
-    //     groupId
-    // );
+
+    let updated = await setCustomMetadata('2DD36E18-E762-440C-BE62-1FB20A2601D6', {
+        mdraindroplink: "updated3"
+    });
+    console.log(updated);
 };
 
 export const raindropTest = async () => {
@@ -48,7 +49,7 @@ export const raindropTest = async () => {
     console.log("Contains devonthink tag? " + raindrop.item.tags.find(tag => tag.indexOf("x-devonthink-item") >= 0))
 
     console.log("------------BEGIN ADD TAG TO SPECIFIC RAINDROP------------");
-    let updated = await RaindropClient.addTagToRaindrop(424617969, "testing");
+    let updated = await RaindropClient.updateRaindrop(424617969, { tags: ["testing"] });
     console.log(updated)
 
     console.log("------------BEGIN TO IDENTIFY COLLECTION FOR RAINDROP--------------");

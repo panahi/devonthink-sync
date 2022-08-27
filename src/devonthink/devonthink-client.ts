@@ -3,8 +3,13 @@ import { Application, ItemSearchParameters } from "./types/Application";
 import { Database } from "./types/Database";
 import { Content, Parent, Record, SmartGroup, TagGroup } from "./types/Record";
 
-export const createPDFFromURL = (sourceURL: string, parentID?: string) : Promise<string> => {
-    return run<string>((url: string, parentId?: string) => {
+export type CustomMetadata = {
+    mdraindroplink: string
+    mdobsidianlink?: string
+}
+
+export const createPDFFromURL = (sourceURL: string, parentID?: string, metadata?: CustomMetadata, tags?: string[]): Promise<string> => {
+    return run<string>((url: string, parentId?: string, metadata?: CustomMetadata, tags?: string[]) => {
         //@ts-ignore
         const dt: Application = Application("Devonthink 3");
         dt.includeStandardAdditions = true;
@@ -23,11 +28,45 @@ export const createPDFFromURL = (sourceURL: string, parentID?: string) : Promise
 
         console.log(`Devonthink: Creating PDF from URL: ${url}`);
         let createdRecord = dt.createPDFDocumentFrom(url, pdfOptions);
+        console.log(`Devonthink: Setting metadata of new PDF to ${JSON.stringify(metadata)}`)
+        if (metadata) {
+            //@ts-ignore
+            createdRecord.customMetaData = metadata;
+        }
+        if (tags && tags.length > 0) {
+            let updatedTags = tags;
+            if (createdRecord.tags().length > 0) {
+                //@ts-ignore
+                updatedTags.push(...createdRecord.tags());
+            }
+            //@ts-ignore
+            createdRecord.tags = updatedTags;
+        }
         return createdRecord.referenceURL();
-    }, sourceURL, parentID)
+    }, sourceURL, parentID, metadata, tags)
 }
 
-export const getUUIDforItem = (parameters: ItemSearchParameters) : Promise<string|undefined> => {
+export const setCustomMetadata = (uuid: string, data: CustomMetadata): Promise<string | undefined> => {
+    return run<string>((uuid: string, data: CustomMetadata) => {
+        //@ts-ignore
+        const dt: Application = Application("Devonthink 3");
+        dt.includeStandardAdditions = true;
+
+        let target = dt.getRecordWithUuid(uuid);
+        if (!target) {
+            console.log("No item found in devonthink for UUID " + uuid);
+            return;
+        }
+
+        //@ts-ignore
+        let currentMetadata: CustomMetadata = target.customMetaData();
+        //@ts-ignore
+        target.customMetaData = data;
+        return target.referenceURL();
+    }, uuid, data)
+}
+
+export const getUUIDforItem = (parameters: ItemSearchParameters): Promise<string | undefined> => {
     return run<string>((parameters: ItemSearchParameters) => {
         //@ts-ignore
         const dt: Application = Application("Devonthink 3");
@@ -35,12 +74,12 @@ export const getUUIDforItem = (parameters: ItemSearchParameters) : Promise<strin
 
         let isGroup = parameters.kind !== undefined && ['group', 'smart group'].includes(parameters.kind);
         console.log(`Searching for items matching:\n\tName: ${parameters.name}
-            \n\tDatabase: ${parameters.database}
-            \n\tParent ID:${parameters.parentUuid}
-            \n\tKind:${parameters.kind}
-            \n\tURL:${parameters.url}
-            \n\tReference URL:${parameters.referenceUrl}
-            \n\tIs Group:${isGroup}`
+            \tDatabase: ${parameters.database}
+            \tParent ID:${parameters.parentUuid}
+            \tKind:${parameters.kind}
+            \tURL:${parameters.url}
+            \tReference URL:${parameters.referenceUrl}
+            \tIs Group:${isGroup}`
         );
         if (parameters.name === undefined && parameters.url === undefined && parameters.referenceUrl === undefined) {
             console.log("Missing search parameters required to find an exact match");
@@ -51,21 +90,13 @@ export const getUUIDforItem = (parameters: ItemSearchParameters) : Promise<strin
         let results: Record[] = [];
 
         for (const db of databases) {
-            console.log("-----Searching database " + db.name());
             let searchArray: Record[] = db.parents();
             if (parameters.kind === undefined || !isGroup) {
                 searchArray.push(...db.contents());
             }
             let foundItems: Record[] = searchArray.filter((record: Record) => {
-                console.log("evaluating " + record.name());
                 let nameMatch = parameters.name === undefined || record.name() === parameters.name;
-                if (nameMatch) {
-                    console.log("name match");
-                    console.log(parameters.kind);
-                    console.log(record.kind());
-                    console.log(record.type());
-                }
-                let parentUuidMatch = parameters.parentUuid === undefined || 
+                let parentUuidMatch = parameters.parentUuid === undefined ||
                     (record.parents().find((parent: Parent) => parent.uuid() === parameters.parentUuid) !== undefined);
                 let kindMatch = parameters.kind === undefined || record.type() === parameters.kind;
                 let urlMatch = parameters.url === undefined || record.url() === parameters.url;
@@ -73,7 +104,7 @@ export const getUUIDforItem = (parameters: ItemSearchParameters) : Promise<strin
 
                 return nameMatch && parentUuidMatch && kindMatch && urlMatch && referenceUrlMatch;
             });
-            
+
             results.push(...foundItems);
         }
 

@@ -4,6 +4,10 @@
 
 import { Reference } from "../base"
 
+export const UNSORTED_COLLECTION = -1;
+export const ALL_RAINDROPS_COLLECTION = 0;
+export const DELETED_RAINDROPS_COLLECTION = -99;
+
 export type Collection = {
     /**
      * The id of the collection.
