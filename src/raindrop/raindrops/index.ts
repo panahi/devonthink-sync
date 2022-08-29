@@ -36,7 +36,7 @@ export class Raindrops extends Base {
     }
 
     async updateRaindrop(raindropId: number, params: RaindropUpdateParameters) {
-        console.log(`Raindrop API: updateing raindrop ${raindropId}`, params)
+        console.log(`Raindrop API: updating raindrop ${raindropId}`, params)
         let toUpdate = await this.getRaindropById(raindropId);
         if (!toUpdate || !toUpdate.item || toUpdate.result == false) {
             return null;

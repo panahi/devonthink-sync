@@ -1,7 +1,7 @@
 /**
  * Using https://github.com/ilyamkin/dev-to-js/blob/master/src/base.ts as a starting point
  */
- type Config = {
+type Config = {
     apiKey?: string,
     basePath?: string,
 }
@@ -44,8 +44,8 @@ export abstract class Base {
         this.apiKey = config?.apiKey || process.env.RAINDROP_TEST_TOKEN;
         this.basePath = config?.basePath || 'https://api.raindrop.io/rest/v1/';
     }
-    
-    protected async request<T> (endpoint: string, options?: RequestInit): Promise<T> {
+
+    protected async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
         const url = this.basePath + endpoint
         const headers = {
             "Authorization": "Bearer " + this.apiKey,
@@ -63,5 +63,11 @@ export abstract class Base {
             }
             throw new Error(res.statusText)
         })
+    }
+
+    public async sleep(ms: number): Promise<void> {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
     }
 }
